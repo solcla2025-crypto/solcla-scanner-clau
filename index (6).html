@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07080B"><title>Solcla Oro</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080B;--card:#0F1016;--line:#1C1D27;--tx:#ECE9F3;--mu:#8D889E;--pk:#FF2DB8;--go:#FFC83D;--up:#2EE6A6;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(110% 50% at 50% -8%,#2b0c27 0,#07080B 62%) no-repeat,#07080B;color:var(--tx);font:500 15px/1.45 'Space Grotesk',system-ui,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px 40px;min-height:100vh}
+main{max-width:520px;margin:auto;display:grid;gap:12px}
+.mono,.lv div,#bt b,.px big{font-family:'JetBrains Mono',ui-monospace,monospace}
+header{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:700;font-size:20px;letter-spacing:.04em}.logo b{color:var(--pk)}.logo i{color:var(--go);font-style:normal;font-weight:500}
+.chip{font-size:11px;letter-spacing:.12em;padding:5px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mu)}
+.chip.on{color:var(--up);border-color:#1d5c49}.chip.off{color:var(--pk);border-color:#5c1d49}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.px{display:flex;justify-content:space-between;align-items:flex-end}
+.px big{font-size:34px;font-weight:700;line-height:1}.px small{display:block;color:var(--mu);font-size:12px;margin-top:6px}
+.px .cd{text-align:right;color:var(--mu);font-size:12px}.px .cd span{display:block;font:700 20px 'JetBrains Mono',monospace;color:var(--go)}
+.buy{border-color:var(--up);box-shadow:0 0 44px -20px var(--up)}
+.sell{border-color:var(--pk);box-shadow:0 0 44px -20px var(--pk)}
+.big{font-size:40px;font-weight:700;line-height:1.1;display:flex;justify-content:space-between;align-items:baseline}
+.buy .big{color:var(--up)}.sell .big{color:var(--pk)}.wait .big{color:var(--go)}
+.st{font-size:16px;color:var(--go);letter-spacing:.08em}
+.tag{font-size:12px;color:var(--mu);margin-bottom:6px}
+.lv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 4px}
+.lv div{background:#0A0B10;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:19px;font-weight:700}
+.lv small{display:block;font:500 11px 'Space Grotesk',sans-serif;color:var(--mu);margin-bottom:2px}
+.lv .r{color:var(--pk)}.lv .g{color:var(--up)}.lv .e{color:var(--go)}
+.ck{list-style:none;padding:0;display:grid;gap:7px;margin:12px 0 4px}
+.ck .y{color:var(--tx)}.ck .n{color:var(--mu)}.ck .y::first-letter{color:var(--up)}.ck .n::first-letter{color:var(--pk)}
+.mu{color:var(--mu);font-size:13px}p{margin-top:9px}
+.q{color:var(--go);font-size:13px}
+h2{font-size:13px;font-weight:500;color:var(--mu);margin-bottom:10px}
+#cv{width:100%;height:260px;display:block}
+#bt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+#bt b{display:block;font-size:20px}#bt small{color:var(--mu);font-size:12px}
+summary{cursor:pointer;color:var(--go);font-size:14px}
+label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;font-size:14px}
+select,input{background:#0A0B10;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit;max-width:56%}
+:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+footer{color:var(--mu);font-size:11px;line-height:1.55;text-align:center;padding:6px 8px}
+</style></head><body><main>
+<header><div class="logo"><b>Solcla</b> <i>Oro</i></div><span id="st" class="chip">CONECTANDO</span></header>
+<section class="card px"><div><big id="bid">—</big><small id="sub">XAUUSD · bid</small></div><div class="cd">cierre de vela M5<span id="cd">—</span></div></section>
+<section class="card" id="err" hidden><p>No llega el feed. Revisá que <b>/api/feed</b> esté desplegado en Vercel y probalo abriéndolo en el navegador.</p></section>
+<section class="card wait" id="sig"><div class="big">ESPERAR</div><p class="mu">Leyendo el feed…</p></section>
+<section class="card"><h2>Gráfico M5 · EMA 21 dorada · EMA 50 gris</h2><canvas id="cv"></canvas></section>
+<section class="card"><h2>Registro de operaciones simuladas</h2><div id="bt"></div><p class="mu" id="btn"></p></section>
+<details class="card"><summary>Ajustes</summary>
+<label>Calidad mínima (de 5 estrellas)<select id="s_min"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+<label>Horario<select id="s_ses"><option value="1">Londres y NY (5 a 17 h)</option><option value="0">Todo el día</option></select></label>
+<label>Riesgo por operación (US$)<input id="s_risk" type="number" inputmode="decimal" min="1"></label>
+<label>Aviso con sonido y vibración<select id="s_snd"><option value="0">No</option><option value="1">Sí</option></select></label>
+<p class="mu">El lote sugerido asume 1 lote = 100 oz (cada US$1 de movimiento = US$100). Verificá el tamaño de contrato en tu cuenta Vantage.</p>
+</details>
+<footer>No operar también es operar. La disciplina es parte del plan.<br>Las señales son informativas y no constituyen asesoramiento financiero. Operar con apalancamiento puede hacerte perder más que el capital depositado. El rendimiento pasado no garantiza resultados futuros.</footer>
+</main>
+<script>
+const $=s=>document.querySelector(s),hm=t=>new Date(t).toISOString().slice(11,16);
+let S={min:2,ses:1,risk:10,snd:0},LOG={},D=null,lastKey='';
+try{S={...S,...JSON.parse(localStorage.sc_set||'{}')};LOG=JSON.parse(localStorage.sc_log||'{}');lastKey=localStorage.sc_last||''}catch(e){}
+const sv=()=>{try{localStorage.sc_set=JSON.stringify(S);localStorage.sc_log=JSON.stringify(LOG)}catch(e){}};
+
+/* ---------- feed ---------- */
+function parse(txt){
+  const i=txt.indexOf('== XAUUSD');if(i<0)throw 0;
+  let j=txt.indexOf('\n== ',i+5);const s=txt.slice(i,j<0?undefined:j);
+  const h=s.match(/bid ([\d.]+)\s+ask ([\d.]+)\s+spread ([\d.]+)/);if(!h)throw 0;
+  const tf={};let cur=null;
+  for(const l of s.split('\n')){
+    const k=l.match(/^(M1|M5|M15|H1) \(/);if(k){cur=k[1];tf[cur]=[];continue}
+    const m=l.match(/^\s+(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(.*)$/);
+    if(m&&cur&&!/parcial/.test(m[10]))tf[cur].push({t:Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5]),o:+m[6],h:+m[7],l:+m[8],c:+m[9]});
+  }
+  if(!tf.M5||!tf.M15||!tf.H1)throw 0;
+  return{bid:+h[1],ask:+h[2],sp:+h[3],live:/estado:\s*VIVO/.test(s),tf};
+}
+async function tick(){
+  try{const r=await fetch('/api/feed?'+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;D=parse(await r.text());$('#err').hidden=true;run()}
+  catch(e){$('#err').hidden=false;const c=$('#st');c.textContent='SIN FEED';c.className='chip off'}
+}
+
+/* ---------- indicadores ---------- */
+const ema=(v,p)=>{const k=2/(p+1);let e=v[0];return v.map((x,i)=>i?(e=x*k+e*(1-k)):e)};
+const atr=(c,p=14)=>{let a=0;return c.map((x,i)=>{const t=i?Math.max(x.h-x.l,Math.abs(x.h-c[i-1].c),Math.abs(x.l-c[i-1].c)):x.h-x.l;a=i<p?(a*i+t)/(i+1):(a*(p-1)+t)/p;return a})};
+function prep(tf){const m5=tf.M5,m15=tf.M15,h1=tf.H1,cl=a=>a.map(x=>x.c);
+  return{m5,e21:ema(cl(m5),21),e50:ema(cl(m5),50),at:atr(m5),m15,E15:[ema(cl(m15),21),ema(cl(m15),50)],h1,Eh:ema(cl(h1),20)}}
+function bz(a,E,cl,dur,f){let k=-1;for(let j=a.length-1;j>=0;j--)if(a[j].t+dur<=cl){k=j;break}
+  if(k<0||cl-(a[k].t+dur)>3*dur)return 0;return f(a[k].c,k,E)}
+const b15=(P,cl)=>bz(P.m15,P.E15,cl,9e5,(c,k,E)=>E[0][k]>E[1][k]&&c>E[1][k]?1:E[0][k]<E[1][k]&&c<E[1][k]?-1:0);
+const b1h=(P,cl)=>bz(P.h1,P.Eh,cl,36e5,(c,k,E)=>c>E[k]?1:-1);
+
+/* ---------- motor de señal: retroceso a favor de la tendencia ---------- */
+function ev(P,i,sp){
+  const{m5,e21,e50,at}=P,x=m5[i],a=at[i],cl=x.t+3e5,b=b15(P,cl),dir=b||(e21[i]>e50[i]?1:-1);
+  const d=new Date(x.t),h=d.getUTCHours()+d.getUTCMinutes()/60,ses=S.ses?h>=5&&h<17:true;
+  let lo=1e9,hi=-1e9,touch=false;
+  for(let k=Math.max(0,i-5);k<=i;k++){lo=Math.min(lo,m5[k].l);hi=Math.max(hi,m5[k].h);
+    if(dir>0?m5[k].l<=e21[k]+.25*a:m5[k].h>=e21[k]-.25*a)touch=true}
+  const body=dir*(x.c-x.o),rng=x.h-x.l||1e-9,pos=dir>0?(x.c-x.l)/rng:(x.h-x.c)/rng;
+  const sl=dir>0?lo-.2*a:hi+.2*a,R=Math.abs(x.c-sl);
+  const ck=[
+    ['Tendencia M15 definida',b!==0],
+    ['M5 alineada con la tendencia (EMA 21 y 50)',dir*(e21[i]-e50[i])>0],
+    ['Retroceso hasta la EMA 21',touch],
+    ['Vela de rechazo con cuerpo firme',body>=.35*a&&dir*(x.c-e21[i])>0&&pos>=.6],
+    ['Stop razonable (0.8 a 2.5 ATR)',R>=.8*a&&R<=2.5*a],
+    ['Spread bajo (hasta 15% del riesgo)',sp<=.15*R],
+    ['Dentro del horario elegido',ses]];
+  const stars=[b1h(P,cl)===dir,body>=.6*a,dir>0?lo>e50[i]:hi<e50[i],h>=10.5&&h<13.5,R<=1.5*a].filter(Boolean).length;
+  return{i,t:x.t,x,a,dir,ck,ok:ck.every(c=>c[1]),stars,R,entry:x.c,sl,tp1:x.c+dir*R,tp2:x.c+dir*2*R};
+}
+/* mitad en TP1 (1R), stop a la entrada, resto a TP2 (2R). Si una vela toca stop y objetivo, cuenta el stop. */
+function sim(P,s){let t1=false;const m=P.m5,d=s.dir;
+  for(let k=s.i+1;k<m.length;k++){const x=m[k];
+    if(!t1){if(d>0?x.l<=s.sl:x.h>=s.sl)return{k,r:-1};if(d>0?x.h>=s.tp1:x.l<=s.tp1)t1=true}
+    else{if(d>0?x.l<=s.entry:x.h>=s.entry)return{k,r:.5};if(d>0?x.h>=s.tp2:x.l<=s.tp2)return{k,r:1.5}}}
+  return{k:-1,r:null}}
+function bt(P,sp){const out=[];let free=0;
+  for(let i=50;i<P.m5.length;i++){if(i<free)continue;const s=ev(P,i,sp);
+    if(s.ok&&s.stars>=S.min){const r=sim(P,s);out.push({...s,...r,net:r.r==null?null:r.r-sp/s.R});free=r.k<0?1e9:r.k+1}}
+  return out}
+function stats(L){const v=Object.values(L),w=v.filter(x=>x.net>0),gp=w.reduce((a,x)=>a+x.net,0),gl=-v.filter(x=>x.net<=0).reduce((a,x)=>a+x.net,0);
+  return{n:v.length,wr:v.length?w.length/v.length*100:0,pf:gl?gp/gl:gp?99:0,R:v.reduce((a,x)=>a+x.net,0)}}
+
+/* ---------- pantalla ---------- */
+function run(){
+  if(!D)return;const P=prep(D.tf),n=P.m5.length-1,sp=D.sp;
+  $('#bid').textContent=D.bid.toFixed(2);$('#sub').textContent=`XAUUSD · ask ${D.ask.toFixed(2)} · spread ${sp.toFixed(2)}`;
+  const c=$('#st');c.textContent=D.live?'VIVO':'SIN DATOS VIVOS';c.className='chip '+(D.live?'on':'off');
+  const el=$('#sig');
+  if(n<60){el.className='card wait';el.innerHTML='<div class="big">ESPERAR</div><p class="mu">El feed trae pocas velas M5 para calcular.</p>';return}
+  const T=bt(P,sp);T.forEach(t=>{if(t.k>=0)LOG[t.t]={d:t.dir,net:t.net}});sv();
+  const cur=D.live?T.filter(t=>t.k<0).pop():null,last=ev(P,n,sp);
+  if(cur){
+    const b=cur.dir>0,fl=cur.dir*(D.bid-cur.entry)/cur.R,lots=Math.max(0,Math.floor(S.risk/(cur.R*100)*100)/100);
+    el.className='card '+(b?'buy':'sell');
+    el.innerHTML=`<div class="tag">${cur.i===n?'Señal nueva':'Operación en curso'} · vela M5 de las ${hm(cur.t+3e5)} h</div>
+<div class="big">${b?'COMPRAR':'VENDER'}<span class="st">${'★'.repeat(cur.stars)+'☆'.repeat(5-cur.stars)}</span></div>
+<div class="lv"><div class="e"><small>Entrada</small>${cur.entry.toFixed(2)}</div><div class="r"><small>Stop</small>${cur.sl.toFixed(2)}</div><div class="g"><small>TP1 (1R)</small>${cur.tp1.toFixed(2)}</div><div class="g"><small>TP2 (2R)</small>${cur.tp2.toFixed(2)}</div></div>
+<p>Riesgo de ${cur.R.toFixed(2)} puntos. Lote sugerido <b>${lots.toFixed(2)}</b> para arriesgar US$${S.risk}. Ahora vas ${fl>=0?'+':''}${fl.toFixed(2)}R${fl<=-1?' (stop alcanzado)':''}.</p>
+<p class="mu">Por qué: M15 ${b?'alcista':'bajista'}, retroceso a la EMA 21, vela de rechazo y stop detrás del swing (${(cur.R/cur.a).toFixed(1)} ATR).</p>
+<p class="mu">Gestión: cerrá la mitad en TP1, llevá el stop a la entrada y dejá el resto hasta TP2.</p>`;
+  }else{
+    const dr=last.ck[0][1]?(last.dir>0?'alcista':'bajista'):'sin definir';
+    el.className='card wait';
+    el.innerHTML=`<div class="tag">${D.live?'Se evalúa al cierre de cada vela M5':'El feed no está vivo'}</div><div class="big">ESPERAR</div>
+<p class="mu">Tendencia M15: ${dr}</p>
+<ul class="ck">${last.ck.map(k=>`<li class="${k[1]?'y':'n'}">${k[1]?'✓':'✗'} ${k[0]}</li>`).join('')}</ul>
+<p class="mu">${D.live?`Con todo en ✓ y calidad de ${S.min}★ o más, aparece la señal.`:'Mercado cerrado o datos viejos: no se generan señales.'}</p>
+<p class="q">No operar también es operar. La disciplina es parte del plan.</p>`;
+  }
+  const key=cur&&cur.i===n?cur.t+':'+cur.dir:'';
+  if(key&&key!==lastKey){lastKey=key;try{localStorage.sc_last=key}catch(e){}if(+S.snd)beep()}
+  const s=stats(LOG);
+  $('#bt').innerHTML=`<div><b>${s.n}</b><small>operaciones</small></div><div><b>${s.n?s.wr.toFixed(0)+'%':'—'}</b><small>aciertos</small></div><div><b>${s.n?s.pf.toFixed(2):'—'}</b><small>factor de ganancia</small></div><div><b>${s.R>=0?'+':''}${s.R.toFixed(1)}R</b><small>resultado</small></div>`;
+  $('#btn').textContent=`Simulado sobre ${n+1} velas M5 (unas ${Math.round((n+1)/12)} h) con el spread descontado. Es una muestra chica: el registro se acumula en este dispositivo cada vez que abrís la app. Con menos de 100 operaciones no saques conclusiones.`;
+  draw(P,T,cur);
+}
+function draw(P,T,cur){
+  const cv=$('#cv'),W=cv.clientWidth,H=260,dp=devicePixelRatio||1;cv.width=W*dp;cv.height=H*dp;
+  const g=cv.getContext('2d');g.scale(dp,dp);const N=60,s0=P.m5.length-N,m=P.m5.slice(s0);
+  let lo=Math.min(...m.map(x=>x.l)),hi=Math.max(...m.map(x=>x.h));
+  if(cur)[cur.sl,cur.tp1].forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v)});
+  const p=(hi-lo)*.05;lo-=p;hi+=p;const cw=W-48,X=i=>6+(i+.5)*cw/N,Y=v=>H-8-(v-lo)/(hi-lo)*(H-16);
+  g.font='10px JetBrains Mono,monospace';g.textBaseline='middle';g.lineWidth=1;
+  for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4,y=Y(v);g.strokeStyle='#1C1D27';g.beginPath();g.moveTo(0,y);g.lineTo(cw+6,y);g.stroke();g.fillStyle='#8D889E';g.fillText(v.toFixed(0),cw+10,y)}
+  const bw=Math.max(2,cw/N*.62);
+  m.forEach((x,j)=>{const c=x.c>=x.o?'#2EE6A6':'#FF2DB8',xx=X(j);g.strokeStyle=g.fillStyle=c;g.beginPath();g.moveTo(xx,Y(x.h));g.lineTo(xx,Y(x.l));g.stroke();g.fillRect(xx-bw/2,Math.min(Y(x.o),Y(x.c)),bw,Math.max(1,Math.abs(Y(x.o)-Y(x.c))))});
+  [[P.e21,'#FFC83D'],[P.e50,'#8D889E']].forEach(([e,c])=>{g.strokeStyle=c;g.lineWidth=1.4;g.beginPath();m.forEach((_,j)=>{const y=Y(e[s0+j]);j?g.lineTo(X(j),y):g.moveTo(X(j),y)});g.stroke()});
+  g.lineWidth=1;
+  T.forEach(t=>{const j=t.i-s0;if(j<0)return;const b=t.dir>0,y=b?Y(t.x.l)+10:Y(t.x.h)-10;g.fillStyle=b?'#2EE6A6':'#FF2DB8';g.beginPath();g.moveTo(X(j),y+(b?-6:6));g.lineTo(X(j)-5,y+(b?5:-5));g.lineTo(X(j)+5,y+(b?5:-5));g.fill()});
+  if(cur)[[cur.entry,'#FFC83D','Entrada'],[cur.sl,'#FF2DB8','Stop'],[cur.tp1,'#2EE6A6','TP1'],[cur.tp2,'#2EE6A6','TP2']].forEach(([v,c,l])=>{const y=Y(v);if(y<4||y>H-4)return;g.strokeStyle=g.fillStyle=c;g.setLineDash([4,4]);g.beginPath();g.moveTo(0,y);g.lineTo(cw+6,y);g.stroke();g.setLineDash([]);g.fillText(l,6,y-7)});
+}
+function beep(){try{navigator.vibrate&&navigator.vibrate([200,80,200]);const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(c.currentTime+.25)}catch(e){}}
+
+/* ---------- arranque ---------- */
+[['min','s_min'],['ses','s_ses'],['risk','s_risk'],['snd','s_snd']].forEach(([k,id])=>{
+  const e=$('#'+id);e.value=S[k];
+  e.onchange=()=>{S[k]=+e.value;if(!(S.risk>0))S.risk=10;if(k==='min'||k==='ses')LOG={};sv();run()}});
+addEventListener('resize',()=>D&&run());
+setInterval(()=>{const r=3e5-Date.now()%3e5;$('#cd').textContent=Math.floor(r/6e4)+':'+String(Math.floor(r%6e4/1e3)).padStart(2,'0')},1000);
+tick();setInterval(tick,10000);
+</script></body></html>
